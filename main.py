@@ -5,6 +5,7 @@ import asyncio
 import requests
 import datetime
 import os
+import list
 from disnake.ext import commands
 no="❌️"
 
@@ -444,16 +445,14 @@ async def all_avatar( ctx ):
   embed.set_image(url = 'https://cdn.discordapp.com/attachments/936681962255548437/940201969929293844/green.png')
   await ctx.send(embed=embed)
 
-@client.command(name='unban')
+@client.slash_command(description='Команда разбанна')
 async def unban(ctx, *, user_id=None):
 	if not ctx.author.guild_permissions.ban_members:
-		await ctx.message.add_reaction("<:error:925385765188419604>")
 		Embed = discord.Embed(description = ':x: **Ошибка! У вас недостаточно прав**', color=0x00008b)
 		await ctx.send(embed = Embed)
 		return
 	if not user_id:
-		await ctx.message.add_reaction("<:error:925385765188419604>")
-		Embed = discord.Embed(description = ':x: **Ошибка! Вы не указали ID пользователя**\n**Аргументы данной команды**\n**[] обязательный аргумент**\n\n**Gides!unban [ID участника]**', color=0x00008b)
+		Embed = disnake.Embed(description = ':x: **Ошибка! Вы не указали ID пользователя**\n**Аргументы данной команды**\n**[] обязательный аргумент**\n\n**Gides!unban [ID участника]**', color=0x00008b)
 		await ctx.send(embed = Embed)
 		return
 	try:
@@ -462,35 +461,44 @@ async def unban(ctx, *, user_id=None):
 		user = await client.fetch_user(user_id=user_id)
 
 		await ctx.guild.unban(user)
-		await ctx.message.add_reaction("<:succesfully:925385120280612864>")
 
-		embed = discord.Embed(title=f"✅|{user} был разбанен", color = 0x00008b)
+		embed = disnake.Embed(title=f"✅|{user} был разбанен", color = 0x05fcfa0)
 		embed.add_field(name = "Модератор", value = ctx.author)
 		embed.add_field(name = "ID разбаненного участника:", value = user.id)
 		await ctx.send(embed=embed)
 
-		embed = discord.Embed(title=f"Вы были разбанены на сервере {ctx.guild.name}", color = 0x00008b)
+		embed = disnake.Embed(title=f"Вы были разбанены на сервере {ctx.guild.name}", color = 0x05fcfa0)
 		embed.add_field(name = "Модератор", value = ctx.author)
 		await user.send(embed=embed)
 		
-		embed = discord.Embed(title=f"{ctx.author} разбанил пользователя {user} на сервере {ctx.guild.name}", color = 0x00008b)
+		embed = disnake.Embed(title=f"{ctx.author} разбанил пользователя {user} на сервере {ctx.guild.name}", color = 0x05fcfa)
 		embed.add_field(name = "ID сервера:", value = ctx.guild.id)
 		embed.add_field(name = "ID разбаненного участника:", value = user.id)
 		embed.add_field(name = "Владелец", value = ctx.guild.owner.mention)
 		embed.add_field(name = "ID Владельца", value = ctx.guild.owner_id)
 		await channel.send(embed=embed)
 
-		embed = discord.Embed(title=f"{ctx.author} разбанил пользователя {user} на вашем сервере с именем {ctx.guild.name}", color = 0x00008b)
+		embed = disnake.Embed(title=f"{ctx.author} разбанил пользователя {user} на вашем сервере с именем {ctx.guild.name}", color = 0x05fcfa)
 		embed.add_field(name = "ID сервера:", value = ctx.guild.id)
 		embed.add_field(name = "ID разбаненного участника:", value = user.id)
 		await owner.send(embed=embed)
 
-	except discord.DiscordException:
+	except disnake.DiscordException:
 		embed = discord.Embed(f"{user} не забанен")
 		await ctx.send(embed=embed)
-	except discord.Forbidden:
+	except disnake.Forbidden:
 		return
-	except discord.HTTPException:
+	except disnake.HTTPException:
 		return
+@client.event
+async def on_member_join(member):
+	for i in list.crashbots:
+		if member.id == i:
+			await member.kick(reason='краш бот')
+			entry = await member.guild.audit_logs(action=disnake.AuditLogAction.bot_add, limit=1).get()
+			member1 = await member.guild.fetch_member(entry.user.id)
+			Embed = disnake.Embed(title=f'🔒|Сервер {member.guild.name} был защищен', description=f'Был кикнут краш бот с именем {member.mention} ({member.name} {member.id})\nЧеловек который добавил краш бота: {member1.mention} {member1.name} {member1.id}, если краш бот не кикнут то у бота некоторые проблемы', color=0x05fcfa)
+			await member.guild.owner.send(embed=Embed)
+
 
 client.run(os.environ["DISCORD_TOKEN"]) 
