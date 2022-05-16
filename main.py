@@ -4,6 +4,7 @@ import disnake
 import asyncio
 import requests
 import datetime
+import os
 from disnake.ext import commands
 no="❌️"
 
