@@ -492,4 +492,4 @@ async def unban(ctx, *, user_id=None):
 	except discord.HTTPException:
 		return
 
-client.run(DISCORD_TOKENv) 
+client.run(os.environ["DISCORD_TOKEN"]) 
